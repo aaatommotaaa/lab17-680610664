@@ -1,4 +1,5 @@
 import { ConfirmDeleteButton } from "@/components/confirm-button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -8,6 +9,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useEnrollmentStore } from "@/lib/enrollment-store";
+
+const semesterLabels: Record<string, string> = {
+  "1": "ภาคการศึกษาที่ 1",
+  "2": "ภาคการศึกษาที่ 2",
+  "3": "ภาคฤดูร้อน",
+};
 
 export function CourseTable() {
   const courses = useEnrollmentStore((s) => s.courses);
@@ -20,7 +27,11 @@ export function CourseTable() {
           <TableRow>
             <TableHead>รหัสวิชา</TableHead>
             <TableHead>ชื่อวิชา</TableHead>
+            <TableHead>หลักสูตร</TableHead>
+            <TableHead>ภาคการศึกษา</TableHead>
+            <TableHead>รายละเอียด</TableHead>
             <TableHead>ผู้สอน</TableHead>
+            <TableHead>รับข่าวสารทางอีเมล</TableHead>
             <TableHead className="w-20">Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -28,7 +39,7 @@ export function CourseTable() {
           {courses.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={4}
+                colSpan={8}
                 className="h-20 text-center text-muted-foreground"
               >
                 ยังไม่มีวิชาที่เปิดสอน
@@ -38,14 +49,42 @@ export function CourseTable() {
           {courses.map((course) => (
             <TableRow key={course.courseId}>
               <TableCell>{course.courseId}</TableCell>
-              <TableCell>{course.courseTitle}</TableCell>
+              <TableCell className="whitespace-normal">
+                {course.courseTitle}
+              </TableCell>
               <TableCell>
-                {/* แสดงรายชื่อผู้สอนเป็นข้อความธรรมดา คั่นด้วย ", " */}
+                {course.program ? (
+                  <Badge variant="outline">{course.program}</Badge>
+                ) : (
+                  "—"
+                )}
+              </TableCell>
+              <TableCell>
+                {course.semester ? semesterLabels[course.semester] : "—"}
+              </TableCell>
+              <TableCell className="max-w-48 whitespace-normal text-muted-foreground">
+                {course.description || "—"}
+              </TableCell>
+              <TableCell>
                 {course.instructors.length === 0 ? (
                   <span className="text-muted-foreground">ยังไม่มีผู้สอน</span>
                 ) : (
-                  course.instructors.join(", ")
+                  <div className="grid gap-2">
+                    {course.instructors.map((i) => (
+                      <div key={i.email} className="leading-tight">
+                        <div className="text-sm">{i.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {i.email}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
+              </TableCell>
+              <TableCell>
+                <Badge variant={course.notifyByEmail ? "default" : "secondary"}>
+                  {course.notifyByEmail ? "รับ" : "ไม่รับ"}
+                </Badge>
               </TableCell>
               <TableCell>
                 <ConfirmDeleteButton
